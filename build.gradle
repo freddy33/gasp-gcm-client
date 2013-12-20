@@ -1,14 +1,11 @@
 buildscript {
     repositories {
-        //mavenCentral()
-        maven {
-            //url "https://repository-partnerdemo.forge.cloudbees.com/release/"
-            url "http://partnerdemo.artifactoryonline.com/partnerdemo/snapshots"
-        }
+        //maven { url 'http://partnerdemo.artifactoryonline.com/partnerdemo/snapshots' }
+        maven { url 'http://localhost:8081/artifactory/libs-snapshot' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.6.+'
-        //classpath 'com.newrelic.agent.android:agent-gradle-plugin:2.426.0'
+	classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:2.2.2'
     }
 }
 
@@ -17,21 +14,33 @@ task wrapper(type: Wrapper) {
 }
 
 apply plugin: 'android'
-//apply plugin: 'newrelic'
+apply plugin: 'artifactory'
 
-repositories {
-    //mavenCentral()
-    maven {
-        //url "https://repository-partnerdemo.forge.cloudbees.com/release/"
-        url "http://partnerdemo.artifactoryonline.com/partnerdemo/snapshots"
+//repositories { maven { url "http://partnerdemo.artifactoryonline.com/partnerdemo/snapshots" } }
+repositories { maven { url "http://localhost:8081/artifactory/libs-snapshot" } }
+
+artifactory {
+    contextUrl = 'http://localhost:8081/artifactory'
+    publish {
+        repository {
+            repoKey = 'libs-snapshot-local'
+            username = 'admin'
+            password = 'password'
+        }
     }
+/*
+    resolve {
+        repository {
+            repoKey = 'libs-snapshot'
+        }
+    }
+*/
 }
 
 dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.android.support:support-v4:18.0.0'
     compile 'com.google.android.gms:play-services:3.2.+'
-    //compile 'com.newrelic.agent.android:android-agent:2.426.0'
     compile files('libs/TestFlightLib.jar')
     compile files('libs/vesselsdk.jar')
 
@@ -49,3 +58,13 @@ android {
         }
     }
 }
+
+artifactoryPublish {
+    publishConfigs('archives', 'apk')
+}
+
+task printConfs {
+    doLast { configurations.each { println "$it" } }
+}
+
+
